@@ -1,0 +1,21 @@
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+frontend/node_modules/
+
+# Build output
+frontend/dist/
+backend/server
+backend/app
+
+# Go
+*.exe
+*.test
+
+# OS
+.DS_Store
+Thumbs.db
