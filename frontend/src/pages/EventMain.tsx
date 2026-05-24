@@ -309,10 +309,6 @@ function MembersTab({ eventId, summary, showToast, onReload }: {
   }, [eventId])
 
   const handleCopyCode = () => {
-    navigator.clipboard.writeText(summary.members[0]?.userId ? '' : '')
-    // get join code from summary — we need to fetch event for that; use members list instead
-    api.getEvent ? null : null
-    // Simpler: the join code is not in summary, but we can show it
     showToast('Используй кнопку «Скопировать ссылку»')
   }
 

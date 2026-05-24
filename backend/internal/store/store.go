@@ -604,7 +604,7 @@ func (s *Store) GetSummary(ctx context.Context, eventID, currentUserID int64) (*
 		LEFT JOIN expense_participants ep ON ep.user_id = em.user_id
 		LEFT JOIN expenses ex ON ex.id = ep.expense_id AND ex.event_id = $1
 		WHERE em.event_id = $1
-		GROUP BY em.user_id, u.display_name, em.emoji, em.role, em.payment_status
+		GROUP BY em.user_id, u.display_name, em.emoji, em.role, em.payment_status, em.joined_at
 		ORDER BY em.joined_at
 	`, eventID)
 	if err != nil {
