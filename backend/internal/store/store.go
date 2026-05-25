@@ -514,10 +514,11 @@ func (s *Store) UpdateExpense(ctx context.Context, expenseID, eventID, userID in
 		return nil, err
 	}
 
-	// check event creator or expense creator
+	// check event creator, expense creator, or allowMembersAddExpenses
 	var eventCreatorID int64
-	_ = s.pool.QueryRow(ctx, `SELECT creator_user_id FROM events WHERE id=$1`, eventID).Scan(&eventCreatorID)
-	if userID != creatorID && userID != eventCreatorID {
+	var allowMembers bool
+	_ = s.pool.QueryRow(ctx, `SELECT creator_user_id, allow_members_add_expenses FROM events WHERE id=$1`, eventID).Scan(&eventCreatorID, &allowMembers)
+	if userID != creatorID && userID != eventCreatorID && !allowMembers {
 		return nil, ErrForbidden
 	}
 

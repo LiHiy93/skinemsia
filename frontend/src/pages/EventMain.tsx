@@ -308,13 +308,16 @@ function MembersTab({ eventId, summary, showToast, onReload }: {
     api.listMembers(eventId).then(setMembers)
   }, [eventId])
 
-  const handleCopyCode = () => {
-    showToast('Используй кнопку «Скопировать ссылку»')
-  }
+  const [joinCodeStr, setJoinCodeStr] = useState('')
 
-  const copyLink = () => {
-    const botLink = `https://t.me/your_bot?start=JOIN_CODE`
-    showToast('Скопируй код события на вкладке «Ещё → Настройки»')
+  useEffect(() => {
+    api.getEvent(eventId).then(e => setJoinCodeStr(e.joinCode)).catch(() => {})
+  }, [eventId])
+
+  const copyInviteLink = () => {
+    if (!joinCodeStr) { showToast('Загрузка кода...'); return }
+    const link = `https://t.me/skinemsia_bot?start=${joinCodeStr}`
+    navigator.clipboard.writeText(link).then(() => showToast('Ссылка скопирована'))
   }
 
   const handleRemove = async (userId: number, name: string) => {
@@ -370,13 +373,7 @@ function MembersTab({ eventId, summary, showToast, onReload }: {
 
       <div className="sep" />
 
-      <button
-        className="btn btn-secondary"
-        onClick={() => {
-          // find join code from members page — we'll show a dialog with event code
-          showToast('Код события можно найти в разделе «Ещё»')
-        }}
-      >
+      <button className="btn btn-secondary" onClick={copyInviteLink}>
         🔗 Пригласить участника
       </button>
     </>
@@ -412,9 +409,8 @@ function SettingsTab({ eventId, summary, onBack, showToast, onReload }: {
   }
 
   const copyLink = () => {
-    const link = `https://t.me/?start=${joinCodeStr}`
-    navigator.clipboard.writeText(link)
-    showToast('Ссылка скопирована')
+    const link = `https://t.me/skinemsia_bot?start=${joinCodeStr}`
+    navigator.clipboard.writeText(link).then(() => showToast('Ссылка скопирована'))
   }
 
   const handleSave = async () => {
