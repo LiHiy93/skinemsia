@@ -109,10 +109,9 @@ func (s *Store) CreateEvent(ctx context.Context, creatorID int64, in CreateEvent
 		return nil, err
 	}
 
-	// creator is also the first member with role=creator, payment_status=paid (collector doesn't pay themselves)
 	_, err = tx.Exec(ctx, `
 		INSERT INTO event_members (event_id, user_id, role, emoji, payment_status)
-		VALUES ($1, $2, 'creator', $3, 'paid')
+		VALUES ($1, $2, 'creator', $3, 'unpaid')
 	`, e.ID, creatorID, emojiList[0])
 	if err != nil {
 		return nil, err
@@ -596,14 +595,14 @@ func (s *Store) GetSummary(ctx context.Context, eventID, currentUserID int64) (*
 		`SELECT COALESCE(SUM(amount_minor),0) FROM expenses WHERE event_id=$1`, eventID,
 	).Scan(&total)
 
-	// per-member amounts
+	// per-member amounts — join expenses first to scope to this event only
 	rows, err := s.pool.Query(ctx, `
 		SELECT em.user_id, u.display_name, em.emoji, em.role, em.payment_status,
 		       COALESCE(SUM(ep.share_minor),0) AS amount
 		FROM event_members em
 		JOIN users u ON u.id = em.user_id
-		LEFT JOIN expense_participants ep ON ep.user_id = em.user_id
-		LEFT JOIN expenses ex ON ex.id = ep.expense_id AND ex.event_id = $1
+		LEFT JOIN expenses ex ON ex.event_id = $1
+		LEFT JOIN expense_participants ep ON ep.expense_id = ex.id AND ep.user_id = em.user_id
 		WHERE em.event_id = $1
 		GROUP BY em.user_id, u.display_name, em.emoji, em.role, em.payment_status, em.joined_at
 		ORDER BY em.joined_at
