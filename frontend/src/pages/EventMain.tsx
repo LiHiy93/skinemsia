@@ -120,7 +120,7 @@ function ExpensesTab({ eventId, summary, onAddExpense, onOpenExpense, onReload }
         </div>
         <div className="summary-card">
           <div className="label">Твоя сумма</div>
-          <div className="value" style={{ color: summary.currentUserAmountMinor > 0 ? 'var(--tg-destructive)' : 'inherit' }}>
+          <div className="value" style={{ color: summary.currentUserAmountMinor > 0 && !summary.currentUserIsCollector ? 'var(--tg-destructive)' : 'inherit' }}>
             {formatMoney(summary.currentUserAmountMinor, summary.currency)}
           </div>
         </div>
@@ -181,8 +181,7 @@ function PaymentTab({ summary, onReload, showToast }: {
   const [loading, setLoading] = useState(false)
 
   const isPaid = summary.currentUserPaymentStatus === 'paid'
-  const isCollector = summary.members.find(m => m.userId === summary.collector.userId)?.userId ===
-    summary.members.find(m => m.isCollector)?.userId
+  const isCollector = summary.currentUserIsCollector
 
   const handleCopy = (text: string, label: string) => {
     navigator.clipboard.writeText(text).then(() => showToast(`${label} скопировано`))
@@ -219,12 +218,18 @@ function PaymentTab({ summary, onReload, showToast }: {
     <>
       {/* My payment block */}
       <div className="card" style={{ marginBottom: 12 }}>
-        <div className="card-label">Ты должен</div>
-        <div className="card-value" style={{ color: summary.currentUserAmountMinor > 0 && !isPaid ? 'var(--tg-destructive)' : 'inherit' }}>
+        <div className="card-label">{isCollector ? 'Твоя доля' : 'Ты должен'}</div>
+        <div className="card-value" style={{ color: summary.currentUserAmountMinor > 0 && !isPaid && !isCollector ? 'var(--tg-destructive)' : 'inherit' }}>
           {amountStr}
         </div>
 
-        {summary.currentUserAmountMinor > 0 && (
+        {isCollector && (
+          <div style={{ marginTop: 6, fontSize: 13, color: 'var(--tg-hint)' }}>
+            Ты собираешь деньги — тебе не нужно никому платить
+          </div>
+        )}
+
+        {!isCollector && summary.currentUserAmountMinor > 0 && (
           <>
             <div className="sep" />
             <div className="info-row">
@@ -254,14 +259,16 @@ function PaymentTab({ summary, onReload, showToast }: {
         )}
       </div>
 
-      {/* Pay button */}
-      <button
-        className={`btn ${isPaid ? 'btn-secondary' : 'btn-primary'}`}
-        onClick={handlePayment}
-        disabled={loading}
-      >
-        {isPaid ? '↩️ Отменить оплату' : '✅ Я оплатил'}
-      </button>
+      {/* Pay button — hidden for collector */}
+      {!isCollector && (
+        <button
+          className={`btn ${isPaid ? 'btn-secondary' : 'btn-primary'}`}
+          onClick={handlePayment}
+          disabled={loading}
+        >
+          {isPaid ? '↩️ Отменить оплату' : '✅ Я оплатил'}
+        </button>
+      )}
 
       {/* Progress */}
       <div className="sep" style={{ margin: '16px 0 8px' }} />

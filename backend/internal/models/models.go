@@ -100,19 +100,20 @@ type CollectorInfo struct {
 }
 
 type EventSummary struct {
-	EventID                 int64          `json:"eventId"`
-	Title                   string         `json:"title"`
-	Currency                string         `json:"currency"`
-	Status                  EventStatus    `json:"status"`
-	TotalAmountMinor        int64          `json:"totalAmountMinor"`
-	CurrentUserAmountMinor  int64          `json:"currentUserAmountMinor"`
-	CurrentUserPaymentStatus PaymentStatus `json:"currentUserPaymentStatus"`
-	CurrentUserRole         MemberRole     `json:"currentUserRole"`
-	AllowMembersAddExpenses bool           `json:"allowMembersAddExpenses"`
-	Collector               CollectorInfo  `json:"collector"`
-	Members                 []MemberSummary `json:"members"`
-	PaidAmountMinor         int64          `json:"paidAmountMinor"`
-	RequiredAmountMinor     int64          `json:"requiredAmountMinor"`
-	PaidCount               int            `json:"paidCount"`
-	MembersCount            int            `json:"membersCount"`
+	EventID                  int64          `json:"eventId"`
+	Title                    string         `json:"title"`
+	Currency                 string         `json:"currency"`
+	Status                   EventStatus    `json:"status"`
+	TotalAmountMinor         int64          `json:"totalAmountMinor"`
+	CurrentUserAmountMinor   int64          `json:"currentUserAmountMinor"`
+	CurrentUserPaymentStatus PaymentStatus  `json:"currentUserPaymentStatus"`
+	CurrentUserRole          MemberRole     `json:"currentUserRole"`
+	CurrentUserIsCollector   bool           `json:"currentUserIsCollector"`
+	AllowMembersAddExpenses  bool           `json:"allowMembersAddExpenses"`
+	Collector                CollectorInfo  `json:"collector"`
+	Members                  []MemberSummary `json:"members"`
+	PaidAmountMinor          int64          `json:"paidAmountMinor"`
+	RequiredAmountMinor      int64          `json:"requiredAmountMinor"`
+	PaidCount                int            `json:"paidCount"`
+	MembersCount             int            `json:"membersCount"`
 }

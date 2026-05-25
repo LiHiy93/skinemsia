@@ -83,6 +83,7 @@ export interface EventSummary {
   currentUserAmountMinor: number
   currentUserPaymentStatus: PaymentStatus
   currentUserRole: MemberRole
+  currentUserIsCollector: boolean
   allowMembersAddExpenses: boolean
   collector: CollectorInfo
   members: MemberSummary[]

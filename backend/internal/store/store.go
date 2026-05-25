@@ -636,26 +636,19 @@ func (s *Store) GetSummary(ctx context.Context, eventID, currentUserID int64) (*
 		m.PaymentStatus = models.PaymentStatus(payStatus)
 		m.IsCollector = m.UserID == collectorUserID
 
-		// collector shows 0 (they receive money, don't pay themselves)
-		displayAmount := m.AmountMinor
-		if m.IsCollector {
-			displayAmount = 0
-		}
-		m.AmountMinor = displayAmount
-
 		members = append(members, m)
 
 		if m.UserID == currentUserID {
-			currentUserAmount = displayAmount
+			currentUserAmount = m.AmountMinor
 			currentUserPayStatus = m.PaymentStatus
 			currentUserRole = m.Role
 		}
 
 		// required = non-collector members total; paid = paid non-collectors
 		if !m.IsCollector {
-			requiredAmount += displayAmount
+			requiredAmount += m.AmountMinor
 			if m.PaymentStatus == models.PaymentPaid {
-				paidAmount += displayAmount
+				paidAmount += m.AmountMinor
 				paidCount++
 			}
 		} else {
@@ -685,6 +678,7 @@ func (s *Store) GetSummary(ctx context.Context, eventID, currentUserID int64) (*
 		CurrentUserAmountMinor:   currentUserAmount,
 		CurrentUserPaymentStatus: currentUserPayStatus,
 		CurrentUserRole:          currentUserRole,
+		CurrentUserIsCollector:   currentUserID == collectorUserID,
 		AllowMembersAddExpenses:  e.AllowMembersAddExpenses,
 		Collector:                collectorInfo,
 		Members:                  members,
