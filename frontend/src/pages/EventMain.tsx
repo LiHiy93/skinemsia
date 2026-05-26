@@ -315,18 +315,6 @@ function MembersTab({ eventId, summary, showToast, onReload }: {
     api.listMembers(eventId).then(setMembers)
   }, [eventId])
 
-  const [joinCodeStr, setJoinCodeStr] = useState('')
-
-  useEffect(() => {
-    api.getEvent(eventId).then(e => setJoinCodeStr(e.joinCode)).catch(() => {})
-  }, [eventId])
-
-  const copyInviteLink = () => {
-    if (!joinCodeStr) { showToast('Загрузка кода...'); return }
-    const link = `https://t.me/skinemsia_bot?startapp=${joinCodeStr}`
-    navigator.clipboard.writeText(link).then(() => showToast('Ссылка скопирована'))
-  }
-
   const handleRemove = async (userId: number, name: string) => {
     if (!confirm(`Удалить ${name} из события?`)) return
     try {
@@ -378,11 +366,6 @@ function MembersTab({ eventId, summary, showToast, onReload }: {
         </div>
       ))}
 
-      <div className="sep" />
-
-      <button className="btn btn-secondary" onClick={copyInviteLink}>
-        🔗 Пригласить участника
-      </button>
     </>
   )
 }
@@ -403,7 +386,6 @@ function SettingsTab({ eventId, summary, onBack, showToast, onReload }: {
   const [loading, setLoading] = useState(false)
 
   const isCreator = summary.currentUserRole === 'creator'
-  const joinCode = summary.eventId // we don't have joinCode in summary — fetch event
   const [joinCodeStr, setJoinCodeStr] = useState('')
 
   useEffect(() => {
@@ -413,11 +395,6 @@ function SettingsTab({ eventId, summary, onBack, showToast, onReload }: {
   const copyCode = () => {
     navigator.clipboard.writeText(joinCodeStr)
     showToast('Код скопирован: ' + joinCodeStr)
-  }
-
-  const copyLink = () => {
-    const link = `https://t.me/skinemsia_bot?startapp=${joinCodeStr}`
-    navigator.clipboard.writeText(link).then(() => showToast('Ссылка скопирована'))
   }
 
   const handleSave = async () => {
@@ -470,10 +447,7 @@ function SettingsTab({ eventId, summary, onBack, showToast, onReload }: {
             {joinCodeStr || '...'}
           </span>
           <button className="btn btn-secondary btn-sm" style={{ width: 'auto' }} onClick={copyCode}>
-            📋 Код
-          </button>
-          <button className="btn btn-secondary btn-sm" style={{ width: 'auto' }} onClick={copyLink}>
-            🔗 Ссылка
+            📋 Скопировать код
           </button>
         </div>
       </div>

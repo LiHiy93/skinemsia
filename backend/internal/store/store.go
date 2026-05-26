@@ -280,14 +280,20 @@ func (s *Store) JoinEvent(ctx context.Context, code string, userID int64) (*mode
 		return e, nil
 	}
 
+	tx, err := s.pool.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback(ctx)
+
 	// pick next emoji
 	var memberCount int
-	_ = s.pool.QueryRow(ctx,
+	_ = tx.QueryRow(ctx,
 		`SELECT COUNT(*) FROM event_members WHERE event_id=$1`, e.ID,
 	).Scan(&memberCount)
 	emoji := emojiList[memberCount%len(emojiList)]
 
-	_, err = s.pool.Exec(ctx, `
+	_, err = tx.Exec(ctx, `
 		INSERT INTO event_members (event_id, user_id, role, emoji, payment_status)
 		VALUES ($1, $2, 'member', $3, 'unpaid')
 	`, e.ID, userID, emoji)
@@ -295,7 +301,55 @@ func (s *Store) JoinEvent(ctx context.Context, code string, userID int64) (*mode
 		return nil, err
 	}
 
-	return e, nil
+	// Auto-add new member to all existing expenses, recalculating shares
+	expRows, err := tx.Query(ctx, `SELECT id, amount_minor FROM expenses WHERE event_id=$1`, e.ID)
+	if err != nil {
+		return nil, err
+	}
+	type expRow struct{ id, amount int64 }
+	var exps []expRow
+	for expRows.Next() {
+		var r expRow
+		if err := expRows.Scan(&r.id, &r.amount); err != nil {
+			expRows.Close()
+			return nil, err
+		}
+		exps = append(exps, r)
+	}
+	expRows.Close()
+
+	for _, ex := range exps {
+		partRows, err := tx.Query(ctx, `SELECT user_id FROM expense_participants WHERE expense_id=$1`, ex.id)
+		if err != nil {
+			return nil, err
+		}
+		var pids []int64
+		for partRows.Next() {
+			var uid int64
+			if err := partRows.Scan(&uid); err != nil {
+				partRows.Close()
+				return nil, err
+			}
+			pids = append(pids, uid)
+		}
+		partRows.Close()
+
+		pids = append(pids, userID)
+		shares := calculateShares(ex.amount, pids)
+
+		if _, err := tx.Exec(ctx, `DELETE FROM expense_participants WHERE expense_id=$1`, ex.id); err != nil {
+			return nil, err
+		}
+		for _, sh := range shares {
+			if _, err := tx.Exec(ctx, `
+				INSERT INTO expense_participants (expense_id, user_id, share_minor) VALUES ($1,$2,$3)
+			`, ex.id, sh.userID, sh.shareMinor); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return e, tx.Commit(ctx)
 }
 
 // ── Members ───────────────────────────────────────────────────────────────────
