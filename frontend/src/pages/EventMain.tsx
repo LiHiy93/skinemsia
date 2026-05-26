@@ -150,9 +150,9 @@ function ExpensesTab({ eventId, summary, onAddExpense, onOpenExpense, onReload }
         <div className="list-item" key={ex.id} onClick={() => onOpenExpense(ex.id)}>
           <div className="list-item-body">
             <div className="list-item-title">{ex.title}</div>
-            <div className="list-item-sub" style={{ display: 'flex', gap: 4, alignItems: 'center', flexWrap: 'wrap' }}>
-              <span>Оплатил: {ex.paidByEmoji} {ex.paidByName}</span>
-              <span>·</span>
+            <div className="list-item-sub" style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+              <span>{ex.paidByEmoji} {ex.paidByName}</span>
+              <span style={{ color: 'var(--tg-hint)' }}>·</span>
               <span>{ex.participants.map(p => p.emoji).join(' ')}</span>
             </div>
           </div>
@@ -323,7 +323,7 @@ function MembersTab({ eventId, summary, showToast, onReload }: {
 
   const copyInviteLink = () => {
     if (!joinCodeStr) { showToast('Загрузка кода...'); return }
-    const link = `https://t.me/skinemsia_bot?start=${joinCodeStr}`
+    const link = `https://t.me/skinemsia_bot?startapp=${joinCodeStr}`
     navigator.clipboard.writeText(link).then(() => showToast('Ссылка скопирована'))
   }
 
@@ -416,7 +416,7 @@ function SettingsTab({ eventId, summary, onBack, showToast, onReload }: {
   }
 
   const copyLink = () => {
-    const link = `https://t.me/skinemsia_bot?start=${joinCodeStr}`
+    const link = `https://t.me/skinemsia_bot?startapp=${joinCodeStr}`
     navigator.clipboard.writeText(link).then(() => showToast('Ссылка скопирована'))
   }
 

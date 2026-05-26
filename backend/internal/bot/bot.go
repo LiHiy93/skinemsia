@@ -172,8 +172,10 @@ func (b *Bot) handleJoin(msg *tgbotapi.Message, ctx context.Context, code string
 		return
 	}
 
-	joinURL := fmt.Sprintf("%s#/event/%d", b.webAppURL, e.ID)
-	b.sendWithURL(msg.Chat.ID, fmt.Sprintf("✅ Ты присоединился к событию *%s*!", e.Title), "📱 Открыть событие", joinURL)
+	b.sendWithURL(msg.Chat.ID,
+		fmt.Sprintf("✅ Ты присоединился к событию *%s*!\n\nОткрой приложение кнопкой ниже 👇", e.Title),
+		"📱 Открыть Скинемся", b.webAppURL,
+	)
 }
 
 func (b *Bot) send(chatID int64, text string) {
