@@ -16,7 +16,7 @@ function getDevHeader(): Record<string, string> {
   return {}
 }
 
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+async function request<T>(path: string, options: RequestInit = {}, attempt = 1): Promise<T> {
   const initData = getInitData()
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -24,11 +24,23 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     ...(options.headers as Record<string, string> ?? {}),
   }
 
-  const res = await fetch(`${BASE}${path}`, { ...options, headers })
+  let res: Response
+  try {
+    res = await fetch(`${BASE}${path}`, { ...options, headers })
+  } catch {
+    throw new Error('Нет связи с сервером. Проверь интернет.')
+  }
+
+  // Render free tier returns 502/503 while waking up — retry once after 5s
+  if ((res.status === 502 || res.status === 503) && attempt === 1) {
+    await new Promise(r => setTimeout(r, 5000))
+    return request<T>(path, options, 2)
+  }
 
   if (!res.ok) {
-    const body = await res.json().catch(() => ({ error: res.statusText }))
-    throw new Error(body.error ?? `HTTP ${res.status}`)
+    const body = await res.json().catch(() => null)
+    const msg = body?.error || `Ошибка сервера (${res.status})`
+    throw new Error(msg)
   }
 
   if (res.status === 204) return undefined as T
